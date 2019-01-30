@@ -11,6 +11,7 @@ const EmojiPropTypes = {
   forceSize: PropTypes.bool,
   tooltip: PropTypes.bool,
   skin: PropTypes.oneOf([1, 2, 3, 4, 5, 6]),
+  className: PropTypes.string,
   sheetSize: PropTypes.oneOf([16, 20, 32, 64]),
   sheetColumns: PropTypes.number,
   sheetRows: PropTypes.number,
@@ -35,6 +36,7 @@ const EmojiDefaultProps = {
   native: false,
   forceSize: false,
   tooltip: false,
+  className: false,
   backgroundImageFn: (set, sheetSize) =>
     `https://unpkg.com/emoji-datasource-${set}@${EMOJI_DATASOURCE_VERSION}/img/${set}/sheets-256/${sheetSize}.png`,
   onOver: () => {},

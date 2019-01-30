@@ -312,7 +312,8 @@ emojiData: {
 import data from 'emoji-mart/datasets/messenger'
 import { NimbleEmojiIndex } from 'emoji-mart'
 
-let emojiIndex = new NimbleEmojiIndex(data)
+const set = 'google'
+let emojiIndex = new NimbleEmojiIndex(data, set)
 emojiIndex.search('christmas')
 ```
 

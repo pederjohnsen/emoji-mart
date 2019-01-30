@@ -13,7 +13,7 @@ export default class Search extends React.PureComponent {
     }
 
     this.data = props.data
-    this.emojiIndex = new NimbleEmojiIndex(this.data)
+    this.emojiIndex = new NimbleEmojiIndex(this.data, props.set)
     this.setRef = this.setRef.bind(this)
     this.handleChange = this.handleChange.bind(this)
     this.clear = this.clear.bind(this)

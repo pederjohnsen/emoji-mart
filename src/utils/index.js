@@ -141,27 +141,39 @@ function getEmojiDataFromNative(nativeString, set, data) {
     }
 
     const skinTones = ['', '🏻', '🏼', '🏽', '🏾', '🏿']
+    const skinCodes = ['', '1F3FB', '1F3FC', '1F3FD', '1F3FE', '1F3FF']
 
     let skin
+    let skinCode
     let baseNativeString = nativeString
 
     skinTones.forEach((skinTone) => {
-        baseNativeString = baseNativeString.replace(skinTone, '')
-        if (nativeString.indexOf(skinTone) > 0) {
-            skin = skinTones.indexOf(skinTone) + 1
-        }
+      if (nativeString.indexOf(skinTone) > 0) {
+        const skindToneIndex = skinTones.indexOf(skinTone)
+        skin = skindToneIndex + 1
+        skinCode = skinCodes[skindToneIndex]
+      }
     })
 
-    const emojiData = Object.values(data.emojis).find((emoji) => {
-        if (emoji.variations && emoji.variations.length) {
-            emoji.unifed = emoji.variations.shift()
-        }
+    if (!skin && baseNativeString === 2) {
+      baseNativeString = Array.from(baseNativeString)[0]
+    }
 
-        return unifiedToNative(emoji.unified) === baseNativeString
+    // Fix for person_with_ball
+    if (baseNativeString === '⛹') {
+      baseNativeString = baseNativeString + '\ufe0f'
+    }
+
+    const emojiData = Object.values(data.emojis).find((emoji) => {
+      if (skin && emoji.skin_variations && emoji.skin_variations[skinCode]) {
+        emoji.unified = emoji.skin_variations[skinCode].unified
+      }
+
+      return unifiedToNative(emoji.unified) === baseNativeString
     })
 
     if (!emojiData) {
-        return null
+      return null
     }
 
     emojiData.id = emojiData.short_names[0]

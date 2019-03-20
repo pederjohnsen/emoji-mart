@@ -136,49 +136,46 @@ function getData(emoji, skin, set, data) {
 }
 
 function getEmojiDataFromNative(nativeString, set, data) {
-    if (data.compressed) {
-        uncompress(data);
+  if (data.compressed) {
+    uncompress(data);
+  }
+
+  const skinTones = ['', '🏻', '🏼', '🏽', '🏾', '🏿']
+  const skinCodes = ['', '1F3FB', '1F3FC', '1F3FD', '1F3FE', '1F3FF']
+
+  let skin
+  let skinCode
+  let baseNativeString = nativeString
+
+  skinTones.forEach((skinTone) => {
+    if (nativeString.indexOf(skinTone) > 0) {
+      const skinToneIndex = skinTones.indexOf(skinTone)
+      skin = skinToneIndex + 1
+      skinCode = skinCodes[skinToneIndex]
+    }
+  })
+
+  const emojiData = Object.values(data.emojis).find((emoji) => {
+    emoji = JSON.parse(_JSON.stringify(emoji))
+
+    if (emoji.variations && emoji.variations.length) {
+        emoji.unified = emoji.variations.shift()
     }
 
-    const skinTones = ['', '🏻', '🏼', '🏽', '🏾', '🏿']
-    const skinCodes = ['', '1F3FB', '1F3FC', '1F3FD', '1F3FE', '1F3FF']
-
-    let skin
-    let skinCode
-    let baseNativeString = nativeString
-
-    skinTones.forEach((skinTone) => {
-      if (nativeString.indexOf(skinTone) > 0) {
-        const skindToneIndex = skinTones.indexOf(skinTone)
-        skin = skindToneIndex + 1
-        skinCode = skinCodes[skindToneIndex]
-      }
-    })
-
-    if (!skin && baseNativeString === 2) {
-      baseNativeString = Array.from(baseNativeString)[0]
+    if (skin && emoji.skin_variations && emoji.skin_variations[skinCode]) {
+      emoji.unified = emoji.skin_variations[skinCode].unified
     }
 
-    // Fix for person_with_ball
-    if (baseNativeString === '⛹') {
-      baseNativeString = baseNativeString + '\ufe0f'
-    }
+    return unifiedToNative(emoji.unified) === baseNativeString
+  })
 
-    const emojiData = Object.values(data.emojis).find((emoji) => {
-      if (skin && emoji.skin_variations && emoji.skin_variations[skinCode]) {
-        emoji.unified = emoji.skin_variations[skinCode].unified
-      }
+  if (!emojiData) {
+    return null
+  }
 
-      return unifiedToNative(emoji.unified) === baseNativeString
-    })
+  emojiData.id = emojiData.short_names[0]
 
-    if (!emojiData) {
-      return null
-    }
-
-    emojiData.id = emojiData.short_names[0]
-
-    return getSanitizedData(emojiData, skin, set, data)
+  return getSanitizedData(emojiData, skin, set, data)
 }
 
 function uniq(arr) {

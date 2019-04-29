@@ -18,6 +18,7 @@ export default class Search extends React.PureComponent {
     this.handleChange = this.handleChange.bind(this)
     this.clear = this.clear.bind(this)
     this.handleKeyUp = this.handleKeyUp.bind(this)
+    this.focus = this.focus.bind(this)
   }
 
   search(value) {
@@ -47,6 +48,11 @@ export default class Search extends React.PureComponent {
     if (this.input.value == '') return
     this.input.value = ''
     this.search('')
+  }
+
+  focus() {
+    var { autoFocus } = this.props
+    if (autoFocus) this.input.focus()
   }
 
   handleChange() {

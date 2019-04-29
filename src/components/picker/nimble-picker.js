@@ -375,6 +375,8 @@ export default class NimblePicker extends React.PureComponent {
     } else {
       scrollToComponent()
     }
+
+    this.search.focus()
   }
 
   handleSkinChange(skin) {

@@ -66,7 +66,7 @@ export default class Search extends React.PureComponent {
   }
 
   focus() {
-    var { autoFocus } = this.props
+    const { autoFocus } = this.props
     if (autoFocus) this.input.focus()
   }
 

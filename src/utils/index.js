@@ -32,6 +32,7 @@ function sanitize(emoji) {
     return {
       id,
       name,
+      short_names,
       colons,
       emoticons,
       custom,
@@ -46,6 +47,7 @@ function sanitize(emoji) {
   return {
     id,
     name,
+    short_names,
     colons,
     emoticons,
     unified: unified.toLowerCase(),
@@ -104,7 +106,7 @@ function getData(emoji, skin, set, data) {
   emojiData.emoticons || (emojiData.emoticons = [])
   emojiData.variations || (emojiData.variations = [])
 
-  if (emojiData.skin_variations && skin > 1 && set) {
+  if (emojiData.skin_variations && skin > 1) {
     emojiData = JSON.parse(_JSON.stringify(emojiData))
 
     var skinKey = SKINS[skin - 1],
@@ -115,8 +117,10 @@ function getData(emoji, skin, set, data) {
     }
 
     if (
-      variationData[`has_img_${set}`] == undefined ||
-      variationData[`has_img_${set}`]
+      (set &&
+        (variationData[`has_img_${set}`] == undefined ||
+          variationData[`has_img_${set}`])) ||
+      !set
     ) {
       emojiData.skin_tone = skin
 
@@ -137,37 +141,40 @@ function getData(emoji, skin, set, data) {
 
 function getEmojiDataFromNative(nativeString, set, data) {
   if (data.compressed) {
-    uncompress(data);
+    uncompress(data)
   }
 
-  const skinTones = ['', '🏻', '🏼', '🏽', '🏾', '🏿']
-  const skinCodes = ['', '1F3FB', '1F3FC', '1F3FD', '1F3FE', '1F3FF']
+  const skinTones = ['🏻', '🏼', '🏽', '🏾', '🏿']
+  const skinCodes = ['1F3FB', '1F3FC', '1F3FD', '1F3FE', '1F3FF']
 
   let skin
   let skinCode
   let baseNativeString = nativeString
 
-  skinTones.forEach((skinTone) => {
+  skinTones.forEach((skinTone, skinToneIndex) => {
     if (nativeString.indexOf(skinTone) > 0) {
-      const skinToneIndex = skinTones.indexOf(skinTone)
-      skin = skinToneIndex + 1
+      skin = skinToneIndex + 2
       skinCode = skinCodes[skinToneIndex]
     }
   })
 
-  const emojiData = Object.values(data.emojis).find((emoji) => {
-    emoji = JSON.parse(_JSON.stringify(emoji))
+  let emojiData
+
+  for (let id in data.emojis) {
+    let emoji = data.emojis[id]
+
+    let emojiUnified = emoji.unified
 
     if (emoji.variations && emoji.variations.length) {
-        emoji.unified = emoji.variations.shift()
+      emojiUnified = emoji.variations.shift()
     }
 
     if (skin && emoji.skin_variations && emoji.skin_variations[skinCode]) {
-      emoji.unified = emoji.skin_variations[skinCode].unified
+      emojiUnified = emoji.skin_variations[skinCode].unified
     }
 
-    return unifiedToNative(emoji.unified) === baseNativeString
-  })
+    if (unifiedToNative(emojiUnified) === baseNativeString) emojiData = emoji
+  }
 
   if (!emojiData) {
     return null
@@ -233,6 +240,26 @@ function measureScrollbar() {
   return scrollbarWidth
 }
 
+// Use requestIdleCallback() if available, else fall back to setTimeout().
+// Throttle so as not to run too frequently.
+function throttleIdleTask(func) {
+  const doIdleTask =
+    typeof requestIdleCallback === 'function' ? requestIdleCallback : setTimeout
+
+  let running = false
+
+  return function throttled() {
+    if (running) {
+      return
+    }
+    running = true
+    doIdleTask(() => {
+      running = false
+      func()
+    })
+  }
+}
+
 export {
   getData,
   getEmojiDataFromNative,
@@ -242,4 +269,5 @@ export {
   deepMerge,
   unifiedToNative,
   measureScrollbar,
+  throttleIdleTask,
 }

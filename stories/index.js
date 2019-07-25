@@ -11,7 +11,7 @@ import {
   color,
 } from '@storybook/addon-knobs'
 
-import { Picker, Emoji, emojiIndex, getEmojiDataFromNative } from '../dist'
+import { Picker, Emoji, emojiIndex, NimbleEmojiIndex, getEmojiDataFromNative } from '../dist'
 import data from '../data/all.json'
 import '../css/emoji-mart.css'
 
@@ -21,13 +21,13 @@ const CUSTOM_EMOJIS = [
     name: 'Octocat',
     short_names: ['octocat'],
     keywords: ['github'],
-    imageUrl: 'https://assets-cdn.github.com/images/icons/emoji/octocat.png?v7',
+    imageUrl: 'https://github.githubassets.com/images/icons/emoji/octocat.png',
   },
   {
     name: 'Squirrel',
     short_names: ['shipit', 'squirrel'],
     keywords: ['github'],
-    imageUrl: 'https://assets-cdn.github.com/images/icons/emoji/shipit.png?v7',
+    imageUrl: 'https://github.githubassets.com/images/icons/emoji/shipit.png',
   },
 ]
 
@@ -56,7 +56,7 @@ storiesOf('Picker', module)
   .add('Custom “Not found” component', () => (
     <Picker
       notFound={() => (
-        <img src="https://assets-cdn.github.com/images/icons/emoji/octocat.png?v7" />
+        <img src="https://github.githubassets.com/images/icons/emoji/octocat.png" />
       )}
     />
   ))
@@ -67,7 +67,7 @@ storiesOf('Picker', module)
       icons={{
         categories: {
           recent: () => (
-            <img src="https://assets-cdn.github.com/images/icons/emoji/octocat.png?v7" />
+            <img src="https://github.githubassets.com/images/icons/emoji/octocat.png" />
           ),
           people: () => (
             <svg
@@ -105,7 +105,7 @@ storiesOf('Picker', module)
             </svg>
           ),
           activity: () => (
-            <img src="https://assets-cdn.github.com/images/icons/emoji/shipit.png?v7" />
+            <img src="https://github.githubassets.com/images/icons/emoji/shipit.png" />
           ),
           places: () => (
             <svg
@@ -216,18 +216,45 @@ storiesOf('Headless Search', module)
     )
   })
 
+  .add('With skin tone from store', () => {
+    const nimbleEmojiIndex = new NimbleEmojiIndex(data)
+    let results = nimbleEmojiIndex.search(text('Search', 'thumbs'), {
+      custom: CUSTOM_EMOJIS,
+    })
+    if (!results) {
+      return null
+    }
+
+    return (
+      <div>
+        {results.map((emoji) => {
+          return (
+            <span key={emoji.id} style={{ marginLeft: '1.4em' }}>
+              <Emoji
+                native={true}
+                emoji={emoji}
+                skin={emoji.skin || 1}
+                size={48}
+              />
+            </span>
+          )
+        })}
+      </div>
+    )
+  })
+
 storiesOf('Get emoji data from Native', module)
   .addDecorator(withKnobs)
   .add('Default', () => {
-    let emojiData = getEmojiDataFromNative(
-      text('Unicode', '🏊🏽‍♀️'),
+    const emojiData = getEmojiDataFromNative(
+      text('Unicode', '🏋🏿‍♂️'),
       select('Emoji pack', SETS, SETS[0]),
       data
     )
     if (!emojiData) {
       return (
         <div>
-          Couldn`t find any emoji data...
+          Couldn`t find any emoji data from native...
         </div>
       )
     }
@@ -235,9 +262,9 @@ storiesOf('Get emoji data from Native', module)
     return (
       <div>
         <Emoji
-          skin={emojiData.skin || 0}
-          set={select('Emoji pack', SETS, SETS[0])}
           emoji={emojiData}
+          set={select('Emoji pack', SETS, SETS[0])}
+          skin={emojiData.skin || 1}
           size={48}
         />
 

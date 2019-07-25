@@ -3,7 +3,8 @@ import PropTypes from 'prop-types'
 
 import { getData, getSanitizedData, unifiedToNative } from '../../utils'
 import { uncompress } from '../../utils/data'
-import { EmojiPropTypes, EmojiDefaultProps } from '../../utils/shared-props'
+import { EmojiPropTypes } from '../../utils/shared-props'
+import { EmojiDefaultProps } from '../../utils/shared-default-props'
 
 const _getData = (props) => {
   var { emoji, skin, set, data } = props
@@ -97,6 +98,12 @@ const NimbleEmoji = (props) => {
     style = {},
     children = props.children,
     className = 'emoji-mart-emoji',
+    nativeEmoji = unified && unifiedToNative(unified),
+    // combine the emoji itself and all shortcodes into an accessible label
+    label = [nativeEmoji]
+      .concat(short_names)
+      .filter(Boolean)
+      .join(', '),
     title = null
 
   if (!unified && !custom) {
@@ -114,12 +121,13 @@ const NimbleEmoji = (props) => {
   if (props.native && unified) {
     className += ' emoji-mart-emoji-native'
     style = { fontSize: props.size }
-    children = unifiedToNative(unified)
+    children = nativeEmoji
 
     if (props.forceSize) {
       style.display = 'inline-block'
       style.width = props.size
       style.height = props.size
+      style.wordBreak = 'keep-all'
     }
   } else if (custom) {
     className += ' emoji-mart-emoji-custom'
@@ -127,8 +135,21 @@ const NimbleEmoji = (props) => {
       width: props.size,
       height: props.size,
       display: 'inline-block',
-      backgroundImage: `url(${imageUrl})`,
-      backgroundSize: 'contain',
+    }
+    if (data.spriteUrl) {
+      style = {
+        ...style,
+        backgroundImage: `url(${data.spriteUrl})`,
+        backgroundSize: `${100 * props.sheetColumns}% ${100 *
+          props.sheetRows}%`,
+        backgroundPosition: _getPosition(props),
+      }
+    } else {
+      style = {
+        ...style,
+        backgroundImage: `url(${imageUrl})`,
+        backgroundSize: 'contain',
+      }
     }
   } else {
     let setHasEmoji =
@@ -149,34 +170,51 @@ const NimbleEmoji = (props) => {
           props.set,
           props.sheetSize,
         )})`,
-        backgroundSize: `${100 * props.sheetColumns}% ${100 * props.sheetRows}%`,
+        backgroundSize: `${100 * props.sheetColumns}% ${100 *
+          props.sheetRows}%`,
         backgroundPosition: _getPosition(props),
       }
     }
   }
 
+  var Tag = {
+    name: 'span',
+    props: {},
+  }
+
+  if (props.onClick) {
+    Tag.name = 'button'
+    Tag.props = {
+      type: 'button',
+    }
+  }
+
   if (props.html) {
     style = _convertStyleToCSS(style)
-    return `<span style='${style}' ${
+    return `<${Tag.name} style='${style}' aria-label='${label}' ${
       title ? `title='${title}'` : ''
-    } class='${className}'>${children || ''}</span>`
+    } class='${className}'>${children || ''}</${Tag.name}>`
   } else {
     return (
-      <span
-        key={props.emoji.id || props.emoji}
+      <Tag.name
         onClick={(e) => _handleClick(e, props)}
         onMouseEnter={(e) => _handleOver(e, props)}
         onMouseLeave={(e) => _handleLeave(e, props)}
+        aria-label={label}
         title={title}
         className={className}
+        {...Tag.props}
       >
         <span style={style} className={props.className || ''}>{children}</span>
-      </span>
+      </Tag.name>
     )
   }
 }
 
-NimbleEmoji.propTypes = { ...EmojiPropTypes, data: PropTypes.object.isRequired }
+NimbleEmoji.propTypes /* remove-proptypes */ = {
+  ...EmojiPropTypes,
+  data: PropTypes.object.isRequired,
+}
 NimbleEmoji.defaultProps = EmojiDefaultProps
 
 export default NimbleEmoji

@@ -31,6 +31,12 @@ const CUSTOM_EMOJIS = [
   },
 ]
 
+const CUSTOM_EMOJIS_WITH_CATEGORIES = CUSTOM_EMOJIS.map(emoji => {
+  return Object.assign({}, emoji, {
+    customCategory: emoji.name === 'Squirrel' ? 'Mammals' : 'Mollusks'
+  })
+})
+
 storiesOf('Picker', module)
   .addDecorator(withKnobs)
   .add('Default', () => (
@@ -39,6 +45,7 @@ storiesOf('Picker', module)
       onSelect={action('selected')}
       onSkinChange={action('skin changed')}
       native={boolean('Unicode', true)}
+      darkMode={boolean('Dark mode', false)}
       set={select('Emoji pack', SETS, SETS[0])}
       emojiSize={number('Emoji size', 24)}
       perLine={number('Per line', 9)}
@@ -58,6 +65,12 @@ storiesOf('Picker', module)
       notFound={() => (
         <img src="https://github.githubassets.com/images/icons/emoji/octocat.png" />
       )}
+    />
+  ))
+
+  .add('Custom categories', () => (
+    <Picker
+      custom={CUSTOM_EMOJIS_WITH_CATEGORIES}
     />
   ))
 

@@ -149,6 +149,8 @@ const NimbleEmoji = (props) => {
         ...style,
         backgroundImage: `url(${imageUrl})`,
         backgroundSize: 'contain',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
       }
     }
   } else {
@@ -182,7 +184,7 @@ const NimbleEmoji = (props) => {
     props: {},
   }
 
-  if (props.onClick) {
+  if (props.onClick && props.useButton) {
     Tag.name = 'button'
     Tag.props = {
       type: 'button',

@@ -1,5 +1,3 @@
-import '../../vendor/raf-polyfill'
-
 import React from 'react'
 import PropTypes from 'prop-types'
 
@@ -66,10 +64,7 @@ export default class NimblePicker extends React.PureComponent {
     this.data = props.data
     this.i18n = deepMerge(I18N, props.i18n)
     this.icons = deepMerge(icons, props.icons)
-    this.state = {
-      skin: props.skin || store.get('skin') || props.defaultSkin,
-      firstRender: true,
-    }
+    this.state = { firstRender: true }
 
     this.categories = []
     let allCategories = [].concat(this.data.categories)
@@ -198,21 +193,7 @@ export default class NimblePicker extends React.PureComponent {
     this.setPreviewRef = this.setPreviewRef.bind(this)
     this.handleSkinChange = this.handleSkinChange.bind(this)
     this.handleKeyDown = this.handleKeyDown.bind(this)
-  }
-
-  static getDerivedStateFromProps(props, state) {
-    if (props.skin) {
-      return {
-        ...state,
-        skin: props.skin,
-      }
-    } else if (props.defaultSkin && !store.get('skin')) {
-      return {
-        ...state,
-        skin: props.defaultSkin,
-      }
-    }
-    return state
+    this.handleDarkMatchMediaChange = this.handleDarkMatchMediaChange.bind(this)
   }
 
   componentDidMount() {
@@ -234,6 +215,10 @@ export default class NimblePicker extends React.PureComponent {
 
     clearTimeout(this.leaveTimeout)
     clearTimeout(this.firstRenderTimeout)
+
+    if (this.darkMatchMedia) {
+      this.darkMatchMedia.removeListener(this.handleDarkMatchMediaChange)
+    }
   }
 
   testStickyPosition() {
@@ -246,6 +231,24 @@ export default class NimblePicker extends React.PureComponent {
     )
 
     this.hasStickyPosition = !!stickyTestElement.style.position.length
+  }
+
+  getPreferredTheme() {
+    if (this.props.theme != 'auto') return this.props.theme
+    if (this.state.theme) return this.state.theme
+    if (typeof matchMedia !== 'function') return PickerDefaultProps.theme
+
+    if (!this.darkMatchMedia) {
+      this.darkMatchMedia = matchMedia('(prefers-color-scheme: dark)')
+      this.darkMatchMedia.addListener(this.handleDarkMatchMediaChange)
+    }
+
+    if (this.darkMatchMedia.media.match(/^not/)) return PickerDefaultProps.theme
+    return this.darkMatchMedia.matches ? 'dark' : 'light'
+  }
+
+  handleDarkMatchMediaChange() {
+    this.setState({ theme: this.darkMatchMedia.matches ? 'dark' : 'light' })
   }
 
   handleEmojiOver(emoji) {
@@ -291,9 +294,11 @@ export default class NimblePicker extends React.PureComponent {
     var component = this.categoryRefs['category-1']
     if (component) {
       let maxMargin = component.maxMargin
-      component.forceUpdate()
+      if (this.props.enableFrequentEmojiSort) {
+        component.forceUpdate()
+      }
 
-      window.requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
         if (!this.scroll) return
         component.memoizeSize()
         if (maxMargin == component.maxMargin) return
@@ -311,7 +316,7 @@ export default class NimblePicker extends React.PureComponent {
   handleScroll() {
     if (!this.waitingForPaint) {
       this.waitingForPaint = true
-      window.requestAnimationFrame(this.handleScrollPaint)
+      requestAnimationFrame(this.handleScrollPaint)
     }
   }
 
@@ -415,7 +420,7 @@ export default class NimblePicker extends React.PureComponent {
       this.handleSearch(null)
       this.search.clear()
 
-      window.requestAnimationFrame(scrollToComponent)
+      requestAnimationFrame(scrollToComponent)
     } else {
       scrollToComponent()
     }
@@ -507,38 +512,44 @@ export default class NimblePicker extends React.PureComponent {
 
   render() {
     var {
-        perLine,
-        emojiSize,
-        set,
-        sheetSize,
-        sheetColumns,
-        sheetRows,
-        style,
-        title,
-        emoji,
-        color,
-        native,
-        backgroundImageFn,
-        emojisToShowFilter,
-        showPreview,
-        showSkinTones,
-        emojiTooltip,
-        include,
-        exclude,
-        recent,
-        autoFocus,
-        skinEmoji,
-        notFound,
-        notFoundEmoji,
-        darkMode,
-      } = this.props,
-      { skin } = this.state,
-      width = perLine * (emojiSize + 12) + 12 + 2 + measureScrollbar()
+      perLine,
+      emojiSize,
+      set,
+      sheetSize,
+      sheetColumns,
+      sheetRows,
+      style,
+      title,
+      emoji,
+      color,
+      native,
+      backgroundImageFn,
+      emojisToShowFilter,
+      showPreview,
+      showSkinTones,
+      emojiTooltip,
+      useButton,
+      include,
+      exclude,
+      recent,
+      autoFocus,
+      skinEmoji,
+      notFound,
+      notFoundEmoji,
+    } = this.props
+
+    var width = perLine * (emojiSize + 12) + 12 + 2 + measureScrollbar()
+    var theme = this.getPreferredTheme()
+    var skin =
+      this.props.skin ||
+      this.state.skin ||
+      store.get('skin') ||
+      this.props.defaultSkin
 
     return (
       <section
         style={{ width: width, ...style }}
-        className={`emoji-mart ${darkMode ? 'emoji-mart-dark' : ''}`}
+        className={`emoji-mart emoji-mart-${theme}`}
         aria-label={title}
         onKeyDown={this.handleKeyDown}
       >
@@ -604,6 +615,7 @@ export default class NimblePicker extends React.PureComponent {
                   forceSize: native,
                   tooltip: emojiTooltip,
                   backgroundImageFn: backgroundImageFn,
+                  useButton: useButton,
                   onOver: this.handleEmojiOver,
                   onLeave: this.handleEmojiLeave,
                   onClick: this.handleEmojiClick,

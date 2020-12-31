@@ -184,7 +184,7 @@ const NimbleEmoji = (props) => {
     props: {},
   }
 
-  if (props.onClick) {
+  if (props.onClick && props.useButton) {
     Tag.name = 'button'
     Tag.props = {
       type: 'button',
@@ -196,7 +196,7 @@ const NimbleEmoji = (props) => {
     return `<${Tag.name} style='${style}' aria-label='${label}' ${
       title ? `title='${title}'` : ''
     } class='${className}'>${children || ''}</${Tag.name}>`
-  } else if (props.img) {
+  } else if (props.img && !props.native) {
     return (
       <Tag.name
         onClick={(e) => _handleClick(e, props)}

@@ -12,6 +12,7 @@ const EmojiPropTypes = {
   tooltip: PropTypes.bool,
   useButton: PropTypes.bool,
   skin: PropTypes.oneOf([1, 2, 3, 4, 5, 6]),
+  className: PropTypes.string,
   sheetSize: PropTypes.oneOf([16, 20, 32, 64]),
   sheetColumns: PropTypes.number,
   sheetRows: PropTypes.number,

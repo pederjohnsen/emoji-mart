@@ -17,10 +17,11 @@ export default class Search extends React.PureComponent {
     }
 
     this.data = props.data
-    this.emojiIndex = new NimbleEmojiIndex(this.data)
+    this.emojiIndex = new NimbleEmojiIndex(this.data, props.set)
     this.setRef = this.setRef.bind(this)
     this.clear = this.clear.bind(this)
     this.handleKeyUp = this.handleKeyUp.bind(this)
+    this.focus = this.focus.bind(this)
 
     // throttle keyboard input so that typing isn't delayed
     this.handleChange = throttleIdleTask(this.handleChange.bind(this))
@@ -62,6 +63,11 @@ export default class Search extends React.PureComponent {
     this.input.value = ''
     this.input.focus()
     this.search('')
+  }
+
+  focus() {
+    const { autoFocus } = this.props
+    if (autoFocus) this.input.focus()
   }
 
   handleChange() {

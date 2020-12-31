@@ -8,6 +8,7 @@ const EmojiDefaultProps = {
   forceSize: false,
   tooltip: false,
   useButton: true,
+  className: false,
   backgroundImageFn: (set, sheetSize) =>
     `https://unpkg.com/emoji-datasource-${set}@${EMOJI_DATASOURCE_VERSION}/img/${set}/sheets-256/${sheetSize}.png`,
 }

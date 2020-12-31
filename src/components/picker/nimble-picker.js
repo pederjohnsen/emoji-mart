@@ -424,6 +424,8 @@ export default class NimblePicker extends React.PureComponent {
     } else {
       scrollToComponent()
     }
+
+    this.search.focus()
   }
 
   handleSkinChange(skin) {
@@ -567,6 +569,7 @@ export default class NimblePicker extends React.PureComponent {
           ref={this.setSearchRef}
           onSearch={this.handleSearch}
           data={this.data}
+          set={set}
           i18n={this.i18n}
           emojisToShowFilter={emojisToShowFilter}
           include={include}

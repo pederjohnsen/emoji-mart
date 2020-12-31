@@ -196,6 +196,26 @@ const NimbleEmoji = (props) => {
     return `<${Tag.name} style='${style}' aria-label='${label}' ${
       title ? `title='${title}'` : ''
     } class='${className}'>${children || ''}</${Tag.name}>`
+  } else if (props.img && !props.native) {
+    return (
+      <Tag.name
+        onClick={(e) => _handleClick(e, props)}
+        onMouseEnter={(e) => _handleOver(e, props)}
+        onMouseLeave={(e) => _handleLeave(e, props)}
+        aria-label={label}
+        title={title}
+        className={className}
+        {...Tag.props}
+      >
+        <img
+          aria-label={label}
+          alt={nativeEmoji}
+          className={props.className || undefined}
+          style={style}
+          src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+        />
+      </Tag.name>
+    )
   } else {
     return (
       <Tag.name
@@ -207,7 +227,9 @@ const NimbleEmoji = (props) => {
         className={className}
         {...Tag.props}
       >
-        <span style={style}>{children}</span>
+        <span style={style} className={props.className || undefined}>
+          {children}
+        </span>
       </Tag.name>
     )
   }
